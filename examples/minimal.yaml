@@ -1,0 +1,31 @@
+# Minimal ragedd configuration
+# Works out of the box with sensible defaults.
+
+chunking:
+  strategy: "fixed"
+  chunk_size: 512
+  chunk_overlap: 64
+
+embeddings:
+  provider: "openai"
+  model: "text-embedding-3-small"
+
+vector_store:
+  provider: "qdrant"
+  collection: "minimal"
+
+retrieval:
+  k: 5
+  use_mmr: false
+  use_metadata_filter: false
+
+reranking:
+  enabled: false
+
+context:
+  max_tokens: 2000
+
+llm:
+  provider: "openai"
+  model: "gpt-4o-mini"
+  temperature: 0.0

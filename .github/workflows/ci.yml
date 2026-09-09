@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate YAML configs
+        run: |
+          echo "Validating YAML syntax..."
+          for f in configs/*.yaml examples/*.yaml; do
+            echo "Checking $f"
+            python -c "import yaml; yaml.safe_load(open('$f'))" || exit 1
+          done
+          echo "All YAML files are valid."
+
+      - name: Check documentation
+        run: |
+          echo "Checking documentation completeness..."
+          # Verify all 10 problem docs exist
+          docs=(
+            "chunking.md"
+            "retrieval.md"
+            "embeddings.md"
+            "query.md"
+            "metadata.md"
+            "context.md"
+            "versioning.md"
+            "hierarchy.md"
+            "parsing.md"
+          )
+          for doc in "${docs[@]}"; do
+            if [ ! -f "docs/$doc" ]; then
+              echo "Missing: docs/$doc"
+              exit 1
+            fi
+          done
+          echo "All documentation files present."
+
+      - name: Validate config keys
+        run: |
+          echo "Validating configuration structure..."
+          python - <<'EOF'
+          import yaml
+
+          with open("configs/rag.yaml") as f:
+              config = yaml.safe_load(f)
+
+          required_sections = [
+              "chunking", "embeddings", "vector_store",
+              "retrieval", "reranking", "context", "query",
+              "metadata", "versioning", "parsing", "llm"
+          ]
+
+          for section in required_sections:
+              if section not in config:
+                  print(f"Missing section: {section}")
+                  exit(1)
+
+          print("Configuration structure valid.")
+          EOF
+
+      - name: Check README references
+        run: |
+          echo "Verifying README references..."
+          # Check that all doc files are referenced in README
+          for doc in docs/*.md; do
+            filename=$(basename "$doc")
+            if ! grep -q "$filename" README.md; then
+              echo "Warning: $filename not referenced in README"
+            fi
+          done

@@ -1,0 +1,102 @@
+# ragedd configuration
+# Copy and adapt this file for your use case.
+
+# ---- Chunking ----
+chunking:
+  strategy: "semantic"          # semantic | fixed | hierarchical | markdown
+  chunk_size: 512              # target tokens per chunk
+  chunk_overlap: 64            # overlap between adjacent chunks
+  separators:                  # used by fixed strategy
+    - "\n\n"
+    - "\n"
+    - "."
+    - " "
+  semantic:
+    threshold: 0.5             # embedding distance threshold for splits
+
+# ---- Embeddings ----
+embeddings:
+  provider: "openai"            # openai | voyage | cohere | huggingface
+  model: "text-embedding-3-small"
+  dimensions: 1536
+  normalize: true              # L2-normalize vectors
+  batch_size: 64
+
+# ---- Vector Store ----
+vector_store:
+  provider: "qdrant"           # qdrant | pinecone | chroma | weaviate
+  collection: "ragged_docs"
+  distance: "cosine"           # cosine | dot | euclidean
+
+# ---- Retrieval ----
+retrieval:
+  k: 10                        # initial candidate count
+  use_mmr: true                # enable diversity-aware retrieval
+  mmr_lambda: 0.7              # relevance vs diversity tradeoff (0..1)
+  fetch_k: 50                  # candidates to fetch before MMR rerank
+  use_metadata_filter: true    # apply metadata filters before vector search
+  metadata_filters: []         # list of {field, operator, value}
+
+# ---- Reranking ----
+reranking:
+  enabled: true
+  provider: "cohere"           # cohere | cross-encoder | sentence-transformers
+  model: "rerank-v3.5"
+  top_n: 5                     # final chunks to keep
+
+# ---- Context ----
+context:
+  max_tokens: 4000             # max tokens sent to LLM
+  template: |
+    Use the following context to answer the question.
+    If the answer is not in the context, say so.
+
+    Context:
+    {context}
+
+    Question: {question}
+
+# ---- Query ----
+query:
+  expand: true                 # expand short queries via LLM
+  rewrite: true                # rewrite query for better retrieval
+  max_query_length: 512
+
+# ---- Metadata ----
+metadata:
+  index_fields:                # fields used for filtering
+    - "source"
+    - "version"
+    - "product"
+    - "language"
+    - "date"
+  required_fields: []          # fields that must be present
+
+# ---- Document Versioning ----
+versioning:
+  enabled: true
+  field: "version"             # field holding version string
+  keep_versions: ["latest"]    # which versions to index ("latest" | "all")
+  deprecation_field: "deprecated"
+  deprecation_value: true      # value indicating deprecated docs
+
+# ---- Parsing ----
+parsing:
+  preserve_tables: true        # keep table structure intact
+  preserve_headings: true      # keep heading hierarchy
+  extract_metadata: true       # extract title, author, date from source
+  languages: ["en"]            # languages to detect
+
+# ---- LLM ----
+llm:
+  provider: "openai"           # openai | anthropic | groq | ollama
+  model: "gpt-4o"
+  temperature: 0.0
+  max_tokens: 1000
+
+# ---- Hierarchy ----
+hierarchy:
+  enabled: true                # preserve parent-child relationships
+  store_parents: true          # index parent chunks too
+  parent_chunk_size: 2048      # size of parent chunks
+  child_chunk_size: 512        # size of child chunks

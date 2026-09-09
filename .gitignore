@@ -1,0 +1,60 @@
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+*.env
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Logs
+*.log
+logs/
+log/
+
+# Temporary
+tmp/
+temp/
+*.tmp
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Vector store data
+.qdrant/
+chromadb/
+data/
+
+# Coverage / Test
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+
+# Git
+.git/

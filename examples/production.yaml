@@ -1,0 +1,94 @@
+# Production-grade ragedd configuration
+# Includes diversity-aware retrieval, metadata filtering, versioning, and hierarchy.
+
+chunking:
+  strategy: "hierarchical"
+  chunk_size: 512
+  chunk_overlap: 64
+  hierarchy:
+    parent_chunk_size: 2048
+    child_chunk_size: 512
+
+embeddings:
+  provider: "voyage"
+  model: "voyage-large-2"
+  dimensions: 1024
+  normalize: true
+  batch_size: 128
+
+vector_store:
+  provider: "qdrant"
+  collection: "prod_docs"
+  distance: "cosine"
+  replication_factor: 3
+  shard_count: 4
+
+retrieval:
+  k: 20
+  use_mmr: true
+  mmr_lambda: 0.7
+  fetch_k: 100
+  use_metadata_filter: true
+  metadata_filters:
+    - field: "deprecated"
+      operator: "eq"
+      value: false
+    - field: "language"
+      operator: "eq"
+      value: "en"
+
+reranking:
+  enabled: true
+  provider: "cohere"
+  model: "rerank-v3.5"
+  top_n: 5
+
+context:
+  max_tokens: 4000
+  template: |
+    You are a helpful assistant. Use the following context to answer the question.
+    Cite sources when relevant. If the answer is not in the context, say so.
+
+    Context:
+    {context}
+
+    Question: {question}
+
+query:
+  expand: true
+  rewrite: true
+  max_query_length: 512
+
+metadata:
+  index_fields:
+    - "source"
+    - "version"
+    - "product"
+    - "language"
+    - "date"
+    - "deprecated"
+
+versioning:
+  enabled: true
+  field: "version"
+  keep_versions: ["latest"]
+  deprecation_field: "deprecated"
+  deprecation_value: true
+
+parsing:
+  preserve_tables: true
+  preserve_headings: true
+  extract_metadata: true
+  languages: ["en", "id"]
+
+llm:
+  provider: "anthropic"
+  model: "claude-3-5-sonnet-20241022"
+  temperature: 0.0
+  max_tokens: 2000
+
+hierarchy:
+  enabled: true
+  store_parents: true
+  parent_chunk_size: 2048
+  child_chunk_size: 512
